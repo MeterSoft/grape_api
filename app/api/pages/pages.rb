@@ -1,118 +1,99 @@
 require 'grape'
 
-module Archive
+module Pages
   class API < Grape::API
-  	format :json
+    format :json
 
-  	helpers do
+    helpers do
       def current_user
-        @current_user ||= User.first
-      end
-
-      def authenticate!
-        error!('401 Unauthorized', 401) unless current_user
-      end
-    end
-
-    resource :page_not_found do
-      get do
-        { error: 'page not found' }
-      end
+        @current_user ||= User.find(params[:username])
+      end      
     end
 
     resource :pages do
       resource :published do   
-    	  get do
-    	  	authenticate!
-    	  	Page.where("published_on IS NOT NULL OR published_on <= ?", Time.now).order("published_on DESC")
-    	  end
+        get do
+          Page.where("published_on IS NOT NULL OR published_on <= ?", Time.now).order("published_on DESC")
+        end
       end
 
       resource :unpublished do
         get do
-          authenticate!
           Page.where("published_on IS NULL OR published_on > ?", Time.now).order("published_on DESC")
         end
       end
 
 
       get do
-        authenticate!
-        @page = current_user.page
+        @page = current_user.admin? ? Page.all : current_user.pages
       end
 
       post do
-        authenticate!
-        @post = Page.create(params[:page])
-        if @post.save
+        @page = Page.create(params[:page])
+        if @page.save
           { success: true }
         else
-          { error: 'error with save page' }
+          error!('Page not save', 401)
         end
       end
 
       get ':id' do
-        authenticate!
         @page = Page.find_by_id(params[:id])
         if @page
           @page
         else
-          redirect '/api/page_not_found' 
+          error!('Page not found', 401)
         end
       end
 
       put ':id' do
-        authenticate!
         @page = Page.find_by_id(params[:id])
         if @page
           if @page.update_attributes(params[:page])
             { success: true }
           else
-            { error: 'error with update' }
+            error!('Page not found', 401)
           end
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
 
       delete ':id' do
-        authenticate!
         @page = Page.find_by_id(params[:id])
         if @page
           if @page.destroy
             { success: true }
           else
-            { error: 'error with destroy' }
+            error!('Page not found', 401)
           end
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
 
 
       post ':id/published' do
-        authenticate!
         @page = Page.find_by_id(params[:id])
         if @page
           if @page.update_attributes(published_on: Time.now)
             { success: true }
           else
-            { error: 'error with save' }
+            error!('Page not found', 401)
           end
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
 
       get ':id/total_words' do
-        authenticate!
         @page = Page.find_by_id(params[:id])
         if @page
           { count: "#{@page.title} #{@page.content}".split.count }
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
-  	end	
+    end 
   end
 end
