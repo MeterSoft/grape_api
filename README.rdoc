@@ -1,35 +1,17 @@
-== Create new page from user with user_id: 1
+== Rails API
 
-  curl -d '{ "page": { "title": "my test", "content": "my content", "user_id": 1 } }' 'http://grapeapi.herokuapp.com/api/pages' -H Content-Type:application/json
+Admin: Jon / 1111
+Content provider: Joni  / 1111
+Content provider: Toni / 1111
 
-== Delete page
+== Github
 
-  curl -X DELETE 'http://grapeapi.herokuapp.com/api/pages/3' -H Content-Type:application/json
+client: https://github.com/MeterSoft/api_semenets
 
-== Update page with id
-
-  curl -X PUT -d '{ "page": { "title": "my test", "content": "111111111111111", "user_id": 1 } }' 'http://grapeapi.herokuapp.com/api/pages/3' -H Content-Type:application/json
-
-== Show page with id
-
-  curl -X GET 'http://grapeapi.herokuapp.com/api/pages/1' -H Content-Type:application/json
-
-== Set published page
-
-  curl -X POST 'http://grapeapi.herokuapp.com/api/pages/4/published' -H Content-Type:application/json
-
-== Get total words count from page with id
-
-  curl -X GET 'http://grapeapi.herokuapp.com/api/pages/4/total_words' -H Content-Type:application/json
-
-== Get published pages
-
-  curl -X GET 'http://grapeapi.herokuapp.com/api/pages/published' -H Content-Type:application/json
-
-== Get unpublished pages
-
-  curl -X GET 'http://grapeapi.herokuapp.com/api/pages/unpublished' -H Content-Type:application/json
+server: https://github.com/MeterSoft/grape_api
 
 == Heroku
 
-	http://grapeapi.herokuapp.com/api/
+client: http://grape-ua.herokuapp.com/
+
+server: http://grape-server.herokuapp.com/

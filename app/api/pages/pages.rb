@@ -1,53 +1,49 @@
 require 'grape'
 
-module Archive
+module Pages
   class API < Grape::API
-  	format :json
+    format :json
 
-  	helpers do
+    helpers do
       def current_user
-        @current_user ||= User.first
+        @current_user ||= User.find_by_username(params['username'])
       end
 
       def authenticate!
         error!('401 Unauthorized', 401) unless current_user
-      end
-    end
-
-    resource :page_not_found do
-      get do
-        { error: 'page not found' }
-      end
+      end      
     end
 
     resource :pages do
       resource :published do   
-    	  get do
-    	  	authenticate!
-    	  	Page.where("published_on IS NOT NULL OR published_on <= ?", Time.now).order("published_on DESC")
-    	  end
+        get do
+          authenticate!
+          @pages = current_user.admin? ? Page.published.desc : current_user.pages.published.desc
+        end
       end
 
       resource :unpublished do
         get do
           authenticate!
-          Page.where("published_on IS NULL OR published_on > ?", Time.now).order("published_on DESC")
+          @pages = current_user.admin? ? Page.unpublished.desc : current_user.pages.unpublished.desc
         end
       end
 
 
       get do
         authenticate!
-        @page = current_user.page
+        @pages = current_user.admin? ? Page.desc : current_user.pages.desc
       end
 
       post do
         authenticate!
-        @post = Page.create(params[:page])
-        if @post.save
+        @page = Page.create({ title: params[:page][':title'], 
+                              content: params[:page][':content'], 
+                              user_id: current_user.id })
+        if @page.save
           { success: true }
         else
-          { error: 'error with save page' }
+          error!('Page not save', 401)
         end
       end
 
@@ -57,7 +53,7 @@ module Archive
         if @page
           @page
         else
-          redirect '/api/page_not_found' 
+          error!('Page not found', 401)
         end
       end
 
@@ -65,13 +61,14 @@ module Archive
         authenticate!
         @page = Page.find_by_id(params[:id])
         if @page
-          if @page.update_attributes(params[:page])
+          if @page.update_attributes({ title: params[:page][':title'], 
+                                       content: params[:page][':content'] })
             { success: true }
           else
-            { error: 'error with update' }
+            error!('Page not found', 401)
           end
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
 
@@ -82,10 +79,10 @@ module Archive
           if @page.destroy
             { success: true }
           else
-            { error: 'error with destroy' }
+            error!('Page not found', 401)
           end
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
 
@@ -97,10 +94,10 @@ module Archive
           if @page.update_attributes(published_on: Time.now)
             { success: true }
           else
-            { error: 'error with save' }
+            error!('Page not found', 401)
           end
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
 
@@ -110,9 +107,9 @@ module Archive
         if @page
           { count: "#{@page.title} #{@page.content}".split.count }
         else
-          redirect '/api/page_not_found'
+          error!('Page not found', 401)
         end
       end
-  	end	
+    end 
   end
 end

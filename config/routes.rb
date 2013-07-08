@@ -2,5 +2,6 @@ require 'grape'
 
 GrapeApi::Application.routes.draw do
 
-  mount Archive::API => "/api/"
+  mount Pages::API => "/api/"
+  mount Sessions::API => "/api/"
 end

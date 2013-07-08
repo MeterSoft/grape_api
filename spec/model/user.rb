@@ -8,6 +8,6 @@ describe User do
   it { should validate_uniqueness_of :username }
 
   context 'associations' do
-    it { should have_one(:page) }
+    it { should have_many(:pages) }
   end
 end
